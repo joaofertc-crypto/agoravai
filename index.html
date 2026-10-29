@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>Dashboard de Chamados</title>
+
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
+
+    <link rel="stylesheet" href="style.css">
+    <script src="script.js" defer></script>
+</head>
+
+<body>
+
+    <aside class="sidebar">
+        <div class="brand">
+            ◈ CHAMADOS
+            <small>Analytics • Excel</small>
+        </div>
+
+        <nav>
+            <a href="#visao">◫ Visão geral</a>
+            <a href="#graficos">◉ Gráficos</a>
+            <a href="#consultas">▤ Consultas</a>
+            <a href="#conversas">☷ Conversas</a>
+        </nav>
+
+        <div class="sidefoot">
+            Processamento local no navegador
+        </div>
+    </aside>
+
+    <main>
+
+        <header>
+            <div>
+                <div class="eyebrow">CENTRAL DE INTELIGÊNCIA</div>
+                <h1>Painel de Chamados</h1>
+                <p>
+                    Indicadores, categorias, subcategorias e histórico textual dos chamados.
+                </p>
+            </div>
+
+            <button id="export" class="secondary" disabled>
+                ↓ Exportar consultas
+            </button>
+        </header>
+
+        <!-- FILTROS -->
+        <section class="filters">
+
+            <label class="upload">
+                ↑ Importar relatório XLSX
+                <input type="file" id="file" accept=".xlsx,.xls" hidden>
+            </label>
+
+            <label>
+                Data inicial
+                <input type="date" id="dateStart">
+            </label>
+
+            <label>
+                Data final
+                <input type="date" id="dateEnd">
+            </label>
+
+            <label>
+                Grupo
+                <select id="group" multiple aria-label="Filtrar por grupos">
+                </select>
+            </label>
+
+            <label>
+                Canal / Solicitação
+                <select id="channel" multiple aria-label="Filtrar por canais e solicitações">
+                </select>
+            </label>
+
+            <label>
+                Categoria
+                <select id="category" multiple aria-label="Filtrar por categorias">
+                </select>
+            </label>
+
+            <label>
+                Subcategoria
+                <select id="subcategory" multiple aria-label="Filtrar por subcategorias">
+                </select>
+            </label>
+
+            <label>
+                Situação
+                <select id="situation" multiple aria-label="Filtrar por situação">
+                    <option value="resolvido">Resolvidos</option>
+                    <option value="pendente">Pendentes</option>
+                    <option value="cancelado">Cancelados</option>
+                </select>
+            </label>
+
+            <label>
+                Reabertura
+                <select id="reopened" multiple aria-label="Filtrar por reabertura">
+                    <option value="sim">Reabertos</option>
+                    <option value="nao">Sem reabertura</option>
+                </select>
+            </label>
+
+            <p class="filter-help">
+                Para selecionar várias opções no computador, mantenha Ctrl pressionado
+                enquanto clica. No Mac, utilize Command. Sem opções selecionadas,
+                o filtro considera todos os valores.
+            </p>
+
+            <div class="filter-actions">
+                <button id="clear" class="secondary" type="button">
+                    Limpar filtros
+                </button>
+            </div>
+
+        </section>
+
+        <div id="message" class="message" role="status">
+            Importe seu relatório Excel.
+        </div>
+
+        <!-- VISÃO GERAL -->
+        <section id="visao">
+
+            <div class="section-heading">
+                <h2>Visão geral</h2>
+                <span>Indicadores filtrados</span>
+            </div>
+
+            <div class="kpis" id="cards"></div>
+
+        </section>
+
+        <!-- GRÁFICOS -->
+        <section id="graficos">
+
+            <div class="section-heading">
+                <h2>Dashboards</h2>
+            </div>
+
+            <div class="charts">
+
+                <article class="panel">
+                    <h3>Chamados por situação</h3>
+                    <div class="chart">
+                        <canvas id="statusChart"></canvas>
+                    </div>
+                </article>
+
+                <article class="panel">
+                    <h3>Canais de atendimento</h3>
+                    <div class="chart">
+                        <canvas id="channelChart"></canvas>
+                    </div>
+                </article>
+
+                <article class="panel">
+                    <h3>Chamados por grupo</h3>
+                    <div class="chart">
+                        <canvas id="groupChart"></canvas>
+                    </div>
+                </article>
+
+                <article class="panel">
+                    <h3>Resoluções por dia</h3>
+                    <div class="chart">
+                        <canvas id="trendChart"></canvas>
+                    </div>
+                </article>
+
+                <article class="panel">
+                    <h3>SLA de solução · Pendentes</h3>
+                    <div class="chart">
+                        <canvas id="slaChart"></canvas>
+                    </div>
+                </article>
+
+                <article class="panel">
+                    <h3>Status dos pendentes</h3>
+                    <div class="chart">
+                        <canvas id="openChart"></canvas>
+                    </div>
+                </article>
+
+                <article class="panel">
+                    <h3>Reaberturas</h3>
+                    <div class="chart">
+                        <canvas id="reopenedChart"></canvas>
+                    </div>
+                </article>
+
+                <article class="panel">
+                    <h3>Situação dos reabertos</h3>
+                    <div class="chart">
+                        <canvas id="reopenedStatusChart"></canvas>
+                    </div>
+                </article>
+
+            </div>
+
+        </section>
+
+        <!-- CONSULTAS -->
+        <section id="consultas">
+
+            <div class="section-heading">
+                <h2>Consultas detalhadas</h2>
+                <span>Categorias e subcategorias incluídas</span>
+            </div>
+
+            <div class="tables" id="panels"></div>
+
+        </section>
+
+        <!-- CONVERSAS -->
+        <section id="conversas">
+
+            <div class="section-heading">
+                <h2>Conversas e descrições</h2>
+                <span id="conversationCount">Importe um relatório</span>
+            </div>
+
+            <div class="panel">
+
+                <label class="searchlabel">
+                    Buscar número, solicitante, descrição, categoria ou subcategoria
+
+                    <input
+                        id="searchTicket"
+                        type="search"
+                        placeholder="Digite para localizar um chamado..."
+                    >
+                </label>
+
+                <div id="conversations" class="ticket-list"></div>
+
+            </div>
+
+        </section>
+
+        <footer>
+            Os indicadores consideram o status atual; a reabertura é independente.
+            O período filtra a data de criação. As conversas são extraídas das colunas
+            Descrição e Descrição da Última Ação do arquivo importado e podem não conter
+            todo o histórico do sistema de origem.
+        </footer>
+
+    </main>
+
+    <!-- DETALHES DO CHAMADO -->
+    <dialog id="ticketDialog">
+
+        <div class="dialog-head">
+            <h2 id="ticketTitle">Chamado</h2>
+
+            <button id="closeTicket" type="button" class="secondary">
+                Fechar ×
+            </button>
+        </div>
+
+        <p id="ticketMeta"></p>
+
+        <h3>Descrição / conversa</h3>
+        <pre id="ticketDescription"></pre>
+
+        <h3>Descrição da última ação</h3>
+        <pre id="ticketLastAction"></pre>
+
+    </dialog>
+
+</body>
+</html>
